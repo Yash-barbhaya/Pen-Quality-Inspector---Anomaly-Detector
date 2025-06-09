@@ -7,11 +7,18 @@ from PIL import Image
 st.title("🖊️ Pen Quality Inspector - Anomaly Detector")
 
 # Load the trained Keras model
-model = tf.keras.models.load_model("converted_keras/model.h5")
+try:
+    model = tf.keras.models.load_model("model.h5")
+except OSError:
+    st.error("❌ Model file not found. Please ensure 'model.h5' is in the root directory.")
 
 # Load class labels
-with open("converted_keras/labels.txt", "r") as f:
-    class_names = [line.strip() for line in f.readlines()]
+try:
+    with open("labels.txt", "r") as f:
+        class_names = [line.strip() for line in f.readlines()]
+except FileNotFoundError:
+    st.error("❌ Labels file not found. Please ensure 'labels.txt' is in the root directory.")
+    st.stop()
 
 # Upload image
 uploaded_file = st.file_uploader("📤 Upload an image of a pen", type=["jpg", "jpeg", "png"])
@@ -23,7 +30,7 @@ if uploaded_file is not None:
     # Preprocess the image
     img = image.resize((224, 224))
     img_array = tf.keras.preprocessing.image.img_to_array(img)
-    img_array = tf.expand_dims(img_array, 0)
+    img_array = tf.expand_dims(img_array, 0)  # Add batch dimension
 
     # Predict
     predictions = model.predict(img_array)
